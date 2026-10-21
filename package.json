@@ -1,0 +1,254 @@
+{
+  "name": "separated-git-scm",
+  "displayName": "Separated Git SCM",
+  "description": "把项目目录与 .git 外迁的分离 git 仓库绑定，在源代码管理面板直接查看/暂存/提交/推送，无需 .git 指针文件。",
+  "version": "0.1.0",
+  "publisher": "autoclaw-local",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alvisliu818/vscode-separated-git-scm.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "bundle": "node esbuild.mjs",
+    "test": "node test/smoke.mjs",
+    "package": "vsce package --no-dependencies --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^3.1.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  },
+  "contributes": {
+    "configuration": {
+      "title": "Separated Git",
+      "properties": {
+        "separatedGit.autoDiscover": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "自动解析工作区根目录下 `*-gl.sh` 包装脚本中的 `--git-dir` / `--work-tree`，生成分离仓库绑定。"
+        },
+        "separatedGit.bindings": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "手动绑定（自动发现之外的补充）。示例：\n\n```json\n[ { \"workTree\": \"E:/HOME/Code/proj\", \"gitDir\": \"E:/HOME/Code/proj-git\", \"label\": \"proj\" } ]\n```",
+          "items": {
+            "type": "object",
+            "required": [
+              "workTree",
+              "gitDir"
+            ],
+            "properties": {
+              "workTree": {
+                "type": "string",
+                "description": "项目工作树目录"
+              },
+              "gitDir": {
+                "type": "string",
+                "description": "外迁的 .git 目录"
+              },
+              "label": {
+                "type": "string",
+                "description": "源代码管理面板里显示的名称（默认取工作树目录名）"
+              }
+            }
+          }
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "separatedGit.refresh",
+        "title": "Separated Git: 刷新所有仓库",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "separatedGit.reloadBindings",
+        "title": "Separated Git: 重新加载绑定"
+      },
+      {
+        "command": "separatedGit.showOutput",
+        "title": "Separated Git: 打开输出日志"
+      },
+      {
+        "command": "separatedGit.commit",
+        "title": "Separated Git: 提交已暂存",
+        "icon": "$(check)"
+      },
+      {
+        "command": "separatedGit.commitAll",
+        "title": "Separated Git: 暂存全部并提交"
+      },
+      {
+        "command": "separatedGit.checkout",
+        "title": "Separated Git: 切换分支",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "separatedGit.push",
+        "title": "Separated Git: 推送",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "separatedGit.pull",
+        "title": "Separated Git: 拉取",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "separatedGit.stage",
+        "title": "暂存"
+      },
+      {
+        "command": "separatedGit.unstage",
+        "title": "取消暂存"
+      },
+      {
+        "command": "separatedGit.stageAll",
+        "title": "暂存全部"
+      },
+      {
+        "command": "separatedGit.unstageAll",
+        "title": "取消全部暂存"
+      },
+      {
+        "command": "separatedGit.discard",
+        "title": "放弃更改"
+      },
+      {
+        "command": "separatedGit.discardAll",
+        "title": "放弃全部更改"
+      },
+      {
+        "command": "separatedGit.openChanges",
+        "title": "打开差异"
+      },
+      {
+        "command": "separatedGit.openFile",
+        "title": "打开文件"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "separatedGit.stage",
+          "when": "false"
+        },
+        {
+          "command": "separatedGit.unstage",
+          "when": "false"
+        },
+        {
+          "command": "separatedGit.openChanges",
+          "when": "false"
+        },
+        {
+          "command": "separatedGit.openFile",
+          "when": "false"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "separatedGit.commit",
+          "group": "navigation",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.checkout",
+          "group": "navigation",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.refresh",
+          "group": "navigation@9",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.stageAll",
+          "group": "1_modification",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.commitAll",
+          "group": "1_modification@2",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.unstageAll",
+          "group": "1_modification@3",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.discardAll",
+          "group": "2_danger",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.push",
+          "group": "3_sync",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.pull",
+          "group": "3_sync@2",
+          "when": "scmProvider == separatedGit"
+        }
+      ],
+      "scm/resourceGroup/context": [
+        {
+          "command": "separatedGit.stageAll",
+          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+        },
+        {
+          "command": "separatedGit.unstageAll",
+          "when": "scmProvider == separatedGit && scmResourceGroup == index"
+        },
+        {
+          "command": "separatedGit.discardAll",
+          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+        }
+      ],
+      "scm/resourceState/context": [
+        {
+          "command": "separatedGit.openChanges",
+          "group": "navigation",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.openFile",
+          "group": "navigation@2",
+          "when": "scmProvider == separatedGit"
+        },
+        {
+          "command": "separatedGit.stage",
+          "group": "1_modification",
+          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+        },
+        {
+          "command": "separatedGit.unstage",
+          "group": "1_modification",
+          "when": "scmProvider == separatedGit && scmResourceGroup == index"
+        },
+        {
+          "command": "separatedGit.discard",
+          "group": "2_danger",
+          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+        }
+      ]
+    }
+  }
+}
