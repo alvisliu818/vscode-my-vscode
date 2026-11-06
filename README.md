@@ -14,7 +14,7 @@ E:\HOME\Code                     ← 工作区根（父仓/私有仓，交给内
 
 ## 安装
 
-1. `Extensions: Install from VSIX…`，选择 `separated-git-scm-<版本>.vsix`
+1. `Extensions: Install from VSIX…`，选择 `my-vscode-<版本>.vsix`
 2. Reload Window
 3. 打开 `E:\HOME\Code` 作为工作区，源代码管理面板会出现每个分离仓库的分区
 
