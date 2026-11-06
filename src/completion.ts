@@ -4,6 +4,16 @@ import * as path from 'path';
 /** 行尾形如 [[xxx 的前缀（xxx 内不允许再出现方括号） */
 const WIKI_PREFIX = /\[\[[^[\]]*$/;
 
+/** 光标后的同词尾巴长度（到方括号/空白/引号为止），补全时一并替换，避免插入后残留半截词 */
+function trailingWordLen(document: vscode.TextDocument, position: vscode.Position): number {
+  const rest = document.lineAt(position.line).text.slice(position.character);
+  let n = 0;
+  while (n < rest.length && !/[[\]\s'"`]/.test(rest[n])) {
+    n++;
+  }
+  return n;
+}
+
 /** 补全扫描时排除的目录 */
 const EXCLUDE_GLOB = '**/{node_modules,.git,__pycache__,.venv,venv,dist,out,tmp,.vs}/**';
 
@@ -24,7 +34,10 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
     }
 
     const query = match[0].slice(2);
-    const replaceRange = new vscode.Range(position.translate(0, -query.length), position);
+    const replaceRange = new vscode.Range(
+      position.translate(0, -query.length),
+      position.translate(0, trailingWordLen(document, position)),
+    );
 
     // [[./ 、[[../ 、[[. 、[[.. 模式：以当前文件目录为基准的相对路径补全
     const dirPart = relDirPart(query);
@@ -122,7 +135,10 @@ export class RelativePathCompletionProvider implements vscode.CompletionItemProv
     }
 
     const [typed, dirPart] = match;
-    const replaceRange = new vscode.Range(position.translate(0, -typed.length), position);
+    const replaceRange = new vscode.Range(
+      position.translate(0, -typed.length),
+      position.translate(0, trailingWordLen(document, position)),
+    );
 
     let dir = path.dirname(document.uri.fsPath);
     for (const seg of dirPart.split('/')) {
@@ -139,5 +155,40 @@ export function registerPathCompletions(ctx: vscode.ExtensionContext): void {
   ctx.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(filter, new WikiPathCompletionProvider(), '[', '.', '/', '\\'),
     vscode.languages.registerCompletionItemProvider(filter, new RelativePathCompletionProvider(), '.', '/'),
+  );
+
+  // 光标移入 [[…]]（或 [[]]）内部时自动弹出补全，查询词取 [[ 到光标之间的字符
+  let timer: NodeJS.Timeout | undefined;
+  ctx.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      const doc = e.textEditor.document;
+      if (doc.languageId !== 'python' || doc.uri.scheme !== 'file') {
+        return;
+      }
+      if (e.selections.length !== 1 || !e.selections[0].isEmpty) {
+        return;
+      }
+      const pos = e.selections[0].active;
+      const line = doc.lineAt(pos.line).text;
+      const before = line.slice(0, pos.character);
+      const after = line.slice(pos.character);
+      // 光标前须有未闭合的 [[…；光标后不能出现其他方括号（允许一个收尾的 ]]）
+      if (!WIKI_PREFIX.test(before) || /[[\]]/.test(after.replace(/\]\]\s*$/, ''))) {
+        return;
+      }
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(() => {
+        void vscode.commands.executeCommand('editor.action.triggerSuggest');
+      }, 250);
+    }),
+    {
+      dispose: () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+      },
+    },
   );
 }
