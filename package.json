@@ -8,7 +8,7 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alvisliu818/my-vscode.git"
+    "url": "https://github.com/alvisliu818/vscode-my-vscode.git"
   },
   "engines": {
     "vscode": "^1.85.0"
