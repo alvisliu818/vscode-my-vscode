@@ -93,17 +93,17 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     private readonly log: vscode.OutputChannel,
     ctx: vscode.ExtensionContext,
   ) {
-    this.scm = vscode.scm.createSourceControl('separatedGit', binding.label, vscode.Uri.file(binding.workTree));
+    this.scm = vscode.scm.createSourceControl('myVscode', binding.label, vscode.Uri.file(binding.workTree));
     tag(this.scm, { _repo: this });
     this.indexGroup = this.scm.createResourceGroup('index', '暂存的更改');
     tag(this.indexGroup, { _repo: this, _groupId: 'index' });
     this.wtGroup = this.scm.createResourceGroup('workingTree', '更改');
     tag(this.wtGroup, { _repo: this, _groupId: 'workingTree' });
     this.scm.quickDiffProvider = this;
-    this.scm.acceptInputCommand = { command: 'separatedGit.commit', title: '提交', arguments: [this] };
+    this.scm.acceptInputCommand = { command: 'myVscode.commit', title: '提交', arguments: [this] };
     this.scm.inputBox.placeholder = `提交信息（${binding.label}，Ctrl+Enter 提交已暂存）`;
     this.scm.statusBarCommands = [
-      { command: 'separatedGit.checkout', title: '$(git-branch) …', tooltip: binding.workTree, arguments: [this] },
+      { command: 'myVscode.checkout', title: '$(git-branch) …', tooltip: binding.workTree, arguments: [this] },
     ];
 
     // 工作树文件变化 + 外迁 git-dir 的 index/HEAD/refs 变化（命令行提交也能实时反映）
@@ -184,7 +184,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     this.scm.count = this.indexGroup.resourceStates.length + this.wtGroup.resourceStates.length;
     this.scm.statusBarCommands = [
       {
-        command: 'separatedGit.checkout',
+        command: 'myVscode.checkout',
         title: `$(git-branch) ${this.branch}`,
         tooltip: `${this.binding.label} · ${this.binding.workTree}`,
         arguments: [this],
@@ -300,7 +300,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
           (await git(this.binding.gitDir, ['status', '--porcelain', '--untracked-files=normal'], this.binding.workTree))
             .stdout.trim() !== '';
         if (!anyChange) {
-          void vscode.window.showInformationMessage(`Separated Git：${this.binding.label} 没有可提交的更改。`);
+          void vscode.window.showInformationMessage(`My VS Code：${this.binding.label} 没有可提交的更改。`);
           return false;
         }
         const pick = await vscode.window.showWarningMessage(
@@ -319,7 +319,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       if (r.code !== 0) {
         this.log.appendLine(`[${this.binding.label}] 提交失败:\n${r.stderr.trim()}`);
         void vscode.window.showErrorMessage(
-          `Separated Git：提交被拒绝（${this.binding.label}）\n${r.stderr.trim()}`,
+          `My VS Code：提交被拒绝（${this.binding.label}）\n${r.stderr.trim()}`,
           { modal: true },
         );
         return false;
@@ -327,7 +327,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       this.scm.inputBox.value = '';
       const h = await git(this.binding.gitDir, ['log', '-1', '--format=%h %s'], this.binding.workTree);
       void vscode.window.showInformationMessage(
-        `Separated Git：${this.binding.label} 已提交 ${h.stdout.trim().split(/\r?\n/)[0] ?? ''}`,
+        `My VS Code：${this.binding.label} 已提交 ${h.stdout.trim().split(/\r?\n/)[0] ?? ''}`,
       );
       await this.refresh();
       return true;
@@ -344,7 +344,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       .map((s) => s.trim())
       .filter(Boolean);
     if (!names.length) {
-      void vscode.window.showInformationMessage(`Separated Git：${this.binding.label} 没有本地分支。`);
+      void vscode.window.showInformationMessage(`My VS Code：${this.binding.label} 没有本地分支。`);
       return;
     }
     const pick = await vscode.window.showQuickPick(
@@ -358,9 +358,9 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     if (pick.label !== cur) {
       try {
         await this.enqueue(() => this.run(['checkout', pick.label]));
-        void vscode.window.showInformationMessage(`Separated Git：${this.binding.label} 已切换到 ${pick.label}`);
+        void vscode.window.showInformationMessage(`My VS Code：${this.binding.label} 已切换到 ${pick.label}`);
       } catch (e) {
-        void vscode.window.showErrorMessage(`Separated Git：${String((e as Error)?.message ?? e)}`, { modal: true });
+        void vscode.window.showErrorMessage(`My VS Code：${String((e as Error)?.message ?? e)}`, { modal: true });
       }
     }
     await this.refresh();
@@ -371,11 +371,11 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     const verb = kind === 'push' ? '推送' : '拉取';
     if (r.code === 0) {
       this.log.appendLine(`[${this.binding.label}] git ${kind}: OK`);
-      void vscode.window.showInformationMessage(`Separated Git：${this.binding.label} ${verb}完成。`);
+      void vscode.window.showInformationMessage(`My VS Code：${this.binding.label} ${verb}完成。`);
     } else {
       this.log.appendLine(`[${this.binding.label}] git ${kind} 失败:\n${r.stderr.trim()}`);
       void vscode.window.showErrorMessage(
-        `Separated Git：${this.binding.label} ${verb}失败\n${r.stderr.trim()}`,
+        `My VS Code：${this.binding.label} ${verb}失败\n${r.stderr.trim()}`,
         { modal: true },
       );
     }

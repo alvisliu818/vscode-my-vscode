@@ -36,14 +36,14 @@
   },
   "contributes": {
     "configuration": {
-      "title": "Separated Git",
+      "title": "My VS Code",
       "properties": {
-        "separatedGit.autoDiscover": {
+        "myVscode.autoDiscover": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "自动解析工作区根目录下 `*-gl.sh` 包装脚本中的 `--git-dir` / `--work-tree`，生成分离仓库绑定。"
         },
-        "separatedGit.bindings": {
+        "myVscode.bindings": {
           "type": "array",
           "default": [],
           "markdownDescription": "手动绑定（自动发现之外的补充）。示例：\n\n```json\n[ { \"workTree\": \"E:/HOME/Code/proj\", \"gitDir\": \"E:/HOME/Code/proj-git\", \"label\": \"proj\" } ]\n```",
@@ -73,180 +73,180 @@
     },
     "commands": [
       {
-        "command": "separatedGit.refresh",
-        "title": "Separated Git: 刷新所有仓库",
+        "command": "myVscode.refresh",
+        "title": "My VS Code: 刷新所有仓库",
         "icon": "$(refresh)"
       },
       {
-        "command": "separatedGit.reloadBindings",
-        "title": "Separated Git: 重新加载绑定"
+        "command": "myVscode.reloadBindings",
+        "title": "My VS Code: 重新加载绑定"
       },
       {
-        "command": "separatedGit.showOutput",
-        "title": "Separated Git: 打开输出日志"
+        "command": "myVscode.showOutput",
+        "title": "My VS Code: 打开输出日志"
       },
       {
-        "command": "separatedGit.commit",
-        "title": "Separated Git: 提交已暂存",
+        "command": "myVscode.commit",
+        "title": "My VS Code: 提交已暂存",
         "icon": "$(check)"
       },
       {
-        "command": "separatedGit.commitAll",
-        "title": "Separated Git: 暂存全部并提交"
+        "command": "myVscode.commitAll",
+        "title": "My VS Code: 暂存全部并提交"
       },
       {
-        "command": "separatedGit.checkout",
-        "title": "Separated Git: 切换分支",
+        "command": "myVscode.checkout",
+        "title": "My VS Code: 切换分支",
         "icon": "$(git-branch)"
       },
       {
-        "command": "separatedGit.push",
-        "title": "Separated Git: 推送",
+        "command": "myVscode.push",
+        "title": "My VS Code: 推送",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "separatedGit.pull",
-        "title": "Separated Git: 拉取",
+        "command": "myVscode.pull",
+        "title": "My VS Code: 拉取",
         "icon": "$(arrow-down)"
       },
       {
-        "command": "separatedGit.stage",
+        "command": "myVscode.stage",
         "title": "暂存"
       },
       {
-        "command": "separatedGit.unstage",
+        "command": "myVscode.unstage",
         "title": "取消暂存"
       },
       {
-        "command": "separatedGit.stageAll",
+        "command": "myVscode.stageAll",
         "title": "暂存全部"
       },
       {
-        "command": "separatedGit.unstageAll",
+        "command": "myVscode.unstageAll",
         "title": "取消全部暂存"
       },
       {
-        "command": "separatedGit.discard",
+        "command": "myVscode.discard",
         "title": "放弃更改"
       },
       {
-        "command": "separatedGit.discardAll",
+        "command": "myVscode.discardAll",
         "title": "放弃全部更改"
       },
       {
-        "command": "separatedGit.openChanges",
+        "command": "myVscode.openChanges",
         "title": "打开差异"
       },
       {
-        "command": "separatedGit.openFile",
+        "command": "myVscode.openFile",
         "title": "打开文件"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "separatedGit.stage",
+          "command": "myVscode.stage",
           "when": "false"
         },
         {
-          "command": "separatedGit.unstage",
+          "command": "myVscode.unstage",
           "when": "false"
         },
         {
-          "command": "separatedGit.openChanges",
+          "command": "myVscode.openChanges",
           "when": "false"
         },
         {
-          "command": "separatedGit.openFile",
+          "command": "myVscode.openFile",
           "when": "false"
         }
       ],
       "scm/title": [
         {
-          "command": "separatedGit.commit",
+          "command": "myVscode.commit",
           "group": "navigation",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.checkout",
+          "command": "myVscode.checkout",
           "group": "navigation",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.refresh",
+          "command": "myVscode.refresh",
           "group": "navigation@9",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.stageAll",
+          "command": "myVscode.stageAll",
           "group": "1_modification",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.commitAll",
+          "command": "myVscode.commitAll",
           "group": "1_modification@2",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.unstageAll",
+          "command": "myVscode.unstageAll",
           "group": "1_modification@3",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.discardAll",
+          "command": "myVscode.discardAll",
           "group": "2_danger",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.push",
+          "command": "myVscode.push",
           "group": "3_sync",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.pull",
+          "command": "myVscode.pull",
           "group": "3_sync@2",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         }
       ],
       "scm/resourceGroup/context": [
         {
-          "command": "separatedGit.stageAll",
-          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+          "command": "myVscode.stageAll",
+          "when": "scmProvider == myVscode && scmResourceGroup == workingTree"
         },
         {
-          "command": "separatedGit.unstageAll",
-          "when": "scmProvider == separatedGit && scmResourceGroup == index"
+          "command": "myVscode.unstageAll",
+          "when": "scmProvider == myVscode && scmResourceGroup == index"
         },
         {
-          "command": "separatedGit.discardAll",
-          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+          "command": "myVscode.discardAll",
+          "when": "scmProvider == myVscode && scmResourceGroup == workingTree"
         }
       ],
       "scm/resourceState/context": [
         {
-          "command": "separatedGit.openChanges",
+          "command": "myVscode.openChanges",
           "group": "navigation",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.openFile",
+          "command": "myVscode.openFile",
           "group": "navigation@2",
-          "when": "scmProvider == separatedGit"
+          "when": "scmProvider == myVscode"
         },
         {
-          "command": "separatedGit.stage",
+          "command": "myVscode.stage",
           "group": "1_modification",
-          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+          "when": "scmProvider == myVscode && scmResourceGroup == workingTree"
         },
         {
-          "command": "separatedGit.unstage",
+          "command": "myVscode.unstage",
           "group": "1_modification",
-          "when": "scmProvider == separatedGit && scmResourceGroup == index"
+          "when": "scmProvider == myVscode && scmResourceGroup == index"
         },
         {
-          "command": "separatedGit.discard",
+          "command": "myVscode.discard",
           "group": "2_danger",
-          "when": "scmProvider == separatedGit && scmResourceGroup == workingTree"
+          "when": "scmProvider == myVscode && scmResourceGroup == workingTree"
         }
       ]
     }

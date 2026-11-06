@@ -7,7 +7,7 @@ import { registerWikiPathCompletion } from './completion';
 type RepoBag = { repo?: BindingRepo; entries: { entry: StatusEntry; group: string }[] };
 
 export function activate(ctx: vscode.ExtensionContext): void {
-  const log = vscode.window.createOutputChannel('Separated Git');
+  const log = vscode.window.createOutputChannel('My VS Code');
   const repos = new Map<string, BindingRepo>();
 
   ctx.subscriptions.push(log);
@@ -52,7 +52,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
   ctx.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('separatedGit')) {
+      if (e.affectsConfiguration('myVscode')) {
         void reload();
       }
     }),
@@ -97,7 +97,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
     const list = [...repos.values()];
     if (list.length === 0) {
-      void vscode.window.showInformationMessage('Separated Git：当前没有可用的分离仓库绑定。');
+      void vscode.window.showInformationMessage('My VS Code：当前没有可用的分离仓库绑定。');
       return undefined;
     }
     if (list.length === 1) {
@@ -136,46 +136,46 @@ export function activate(ctx: vscode.ExtensionContext): void {
   };
 
   const errBox = (e: unknown) => {
-    void vscode.window.showErrorMessage(`Separated Git：${String((e as Error)?.message ?? e)}`, { modal: true });
+    void vscode.window.showErrorMessage(`My VS Code：${String((e as Error)?.message ?? e)}`, { modal: true });
   };
 
   const reg = (id: string, fn: (...a: unknown[]) => unknown) =>
     ctx.subscriptions.push(vscode.commands.registerCommand(id, fn));
 
-  reg('separatedGit.refresh', () => refreshAll());
-  reg('separatedGit.showOutput', () => log.show(true));
-  reg('separatedGit.reloadBindings', () => reload());
+  reg('myVscode.refresh', () => refreshAll());
+  reg('myVscode.showOutput', () => log.show(true));
+  reg('myVscode.reloadBindings', () => reload());
 
-  reg('separatedGit.commit', (arg) => {
+  reg('myVscode.commit', (arg) => {
     void resolveRepo(arg).then((r) => r?.commit(false).catch(errBox));
   });
-  reg('separatedGit.commitAll', (arg) => {
+  reg('myVscode.commitAll', (arg) => {
     void resolveRepo(arg).then((r) => r?.commit(true).catch(errBox));
   });
-  reg('separatedGit.checkout', (arg) => {
+  reg('myVscode.checkout', (arg) => {
     void resolveRepo(arg).then((r) => r?.pickBranch());
   });
-  reg('separatedGit.push', (arg) => {
+  reg('myVscode.push', (arg) => {
     void resolveRepo(arg).then((r) => r?.sync('push').catch(errBox));
   });
-  reg('separatedGit.pull', (arg) => {
+  reg('myVscode.pull', (arg) => {
     void resolveRepo(arg).then((r) => r?.sync('pull').catch(errBox));
   });
-  reg('separatedGit.stageAll', (arg) => {
+  reg('myVscode.stageAll', (arg) => {
     void resolveRepo(arg).then((r) => r?.stageAll().catch(errBox));
   });
-  reg('separatedGit.unstageAll', (arg) => {
+  reg('myVscode.unstageAll', (arg) => {
     void resolveRepo(arg).then((r) => r?.unstageAll().catch(errBox));
   });
 
-  reg('separatedGit.stage', (...args: unknown[]) => {
+  reg('myVscode.stage', (...args: unknown[]) => {
     const bag = collect(args);
     const paths = bag.entries.filter((x) => x.group !== 'index').map((x) => x.entry.path);
     if (bag.repo && paths.length) {
       void bag.repo.stage(paths).catch(errBox);
     }
   });
-  reg('separatedGit.unstage', (...args: unknown[]) => {
+  reg('myVscode.unstage', (...args: unknown[]) => {
     const bag = collect(args);
     const paths = bag.entries.filter((x) => x.group === 'index').map((x) => x.entry.path);
     if (bag.repo && paths.length) {
@@ -193,7 +193,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     return pick === '放弃更改';
   };
 
-  reg('separatedGit.discard', async (...args: unknown[]) => {
+  reg('myVscode.discard', async (...args: unknown[]) => {
     const bag = collect(args);
     if (!bag.repo || !bag.entries.length) {
       return;
@@ -204,7 +204,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
     await bag.repo.discardNow(bag.entries).catch(errBox);
   });
-  reg('separatedGit.discardAll', async (arg) => {
+  reg('myVscode.discardAll', async (arg) => {
     const repo = await resolveRepo(arg);
     if (!repo) {
       return;
@@ -216,7 +216,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
       })
       .filter((x): x is { entry: StatusEntry; group: string } => !!x);
     if (!items.length) {
-      void vscode.window.showInformationMessage(`Separated Git：${repo.binding.label} 工作树没有未暂存的更改。`);
+      void vscode.window.showInformationMessage(`My VS Code：${repo.binding.label} 工作树没有未暂存的更改。`);
       return;
     }
     const paths = [...new Set(items.map((x) => x.entry.path))];
@@ -226,13 +226,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
     await repo.discardNow(items).catch(errBox);
   });
 
-  reg('separatedGit.openChanges', async (...args: unknown[]) => {
+  reg('myVscode.openChanges', async (...args: unknown[]) => {
     const bag = collect(args);
     if (bag.repo && bag.entries.length) {
       await openChanges(bag.repo, bag.entries[0].entry, bag.entries[0].group).catch(errBox);
     }
   });
-  reg('separatedGit.openFile', async (...args: unknown[]) => {
+  reg('myVscode.openFile', async (...args: unknown[]) => {
     const bag = collect(args);
     if (bag.repo && bag.entries.length) {
       await openFile(bag.repo, bag.entries[0].entry).catch(errBox);

@@ -18,12 +18,12 @@ function basename(p: string): string {
 
 /**
  * 绑定来源：
- * 1) settings 里手动配置 separatedGit.bindings；
+ * 1) settings 里手动配置 myVscode.bindings；
  * 2) 各工作区根目录下 *-gl.sh 包装脚本自动发现（--git-dir / --work-tree）。
  * 以 gitDir 归一化去重。
  */
 export async function discoverBindings(): Promise<Binding[]> {
-  const cfg = vscode.workspace.getConfiguration('separatedGit');
+  const cfg = vscode.workspace.getConfiguration('myVscode');
   const out = new Map<string, Binding>();
   const add = (b: Binding) => {
     const key = normalizePath(b.gitDir)!.toLowerCase();

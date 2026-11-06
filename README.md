@@ -1,4 +1,4 @@
-# Separated Git SCM
+# My VS Code
 
 把「工作树目录」与「外迁的 `.git` 目录」（分离 git 仓库）直接绑定，在 VSCode
 源代码管理面板里原生操作这些仓库 —— **不在项目目录里放任何 `.git` 指针文件**。
@@ -22,7 +22,7 @@ E:\HOME\Code                     ← 工作区根（父仓/私有仓，交给内
 
 - **自动发现**：扫描工作区根目录下的 `*-gl.sh` / `gl.sh` 包装脚本，解析其中的
   `--git-dir=…` 与 `--work-tree=…`。纯转发脚本（如已并入聚合仓的 `gl.sh`）会被自然跳过。
-- **手动配置**：`separatedGit.bindings`（工作树、外迁 git-dir、可选显示名）。
+- **手动配置**：`myVscode.bindings`（工作树、外迁 git-dir、可选显示名）。
 - 目录里已有有效 `.git`（含指针文件）的项目会被跳过，交给内置 git 扩展，避免重复条目。
 
 ## 功能
@@ -43,11 +43,11 @@ pre-commit 钩子仍在外迁 git-dir 的 `hooks/` 下生效 —— 钩子拦截
 
 | 项 | 默认 | 说明 |
 | --- | --- | --- |
-| `separatedGit.autoDiscover` | `true` | 自动解析根目录 `*-gl.sh` 脚本生成绑定 |
-| `separatedGit.bindings` | `[]` | 手动绑定 `[{ workTree, gitDir, label }]` |
+| `myVscode.autoDiscover` | `true` | 自动解析根目录 `*-gl.sh` 脚本生成绑定 |
+| `myVscode.bindings` | `[]` | 手动绑定 `[{ workTree, gitDir, label }]` |
 
 ## 已知限制
 
 - 需要把 `E:\HOME\Code`（含 `*-gl.sh` 的目录）作为工作区打开，才能自动发现；
-  打开单个子项目文件夹时请用 `separatedGit.bindings` 手动配置。
+  打开单个子项目文件夹时请用 `myVscode.bindings` 手动配置。
 - 未实现：stash、rebase、远端管理、子模块操作。
