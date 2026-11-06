@@ -2,7 +2,7 @@
   "name": "my-vscode",
   "displayName": "My VS Code",
   "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
@@ -65,6 +65,10 @@
               "label": {
                 "type": "string",
                 "description": "源代码管理面板里显示的名称（默认取工作树目录名）"
+              },
+              "force": {
+                "type": "boolean",
+                "description": "跳过自管检测强制接管。目录里有有效 .git 指针文件时默认会让给内置 git 扩展；若内置 git 扫不到（如二级深目录）导致存储库不显示，设为 true。"
               }
             }
           }
@@ -113,6 +117,11 @@
         "command": "myVscode.remotes",
         "title": "My VS Code: 管理远程",
         "icon": "$(cloud)"
+      },
+      {
+        "command": "myVscode.publish",
+        "title": "My VS Code: 发布分支到远程",
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "myVscode.stage",
@@ -215,6 +224,44 @@
         {
           "command": "myVscode.remotes",
           "group": "3_sync@3",
+          "when": "scmProvider == myVscode"
+        }
+      ],
+      "scm/sourceControl": [
+        {
+          "command": "myVscode.checkout",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.publish",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.push",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.pull",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.remotes",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.commitAll",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.stageAll",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.unstageAll",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.refresh",
           "when": "scmProvider == myVscode"
         }
       ],

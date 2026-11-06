@@ -29,7 +29,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     const active: Binding[] = [];
     for (const b of bindings) {
       try {
-        if (await selfManaged(b.workTree)) {
+        if (!b.force && (await selfManaged(b.workTree))) {
           log.appendLine(`[绑定] 跳过 ${b.label}（目录内已有自己的 .git，交给内置 git 扩展）`);
           continue;
         }
@@ -40,7 +40,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
     }
     for (const b of active) {
       repos.set(b.gitDir.toLowerCase(), new BindingRepo(b, log, ctx));
-      log.appendLine(`[绑定] ${b.label}: work-tree=${b.workTree} git-dir=${b.gitDir}`);
+      log.appendLine(`[绑定] ${b.label}${b.force ? '（force）' : ''}: work-tree=${b.workTree} git-dir=${b.gitDir}`);
     }
     log.appendLine(
       `[绑定] 共 ${active.length} 个分离仓库${bindings.length !== active.length ? `（另跳过 ${bindings.length - active.length} 个）` : ''}`,
@@ -298,6 +298,38 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
   reg('myVscode.remotes', (arg) => {
     void resolveRepo(arg).then((r) => (r ? manageRemotes(r) : undefined));
+  });
+
+  reg('myVscode.publish', (arg) => {
+    void (async () => {
+      const repo = await resolveRepo(arg);
+      if (!repo) {
+        return;
+      }
+      const remotes = await repo.listRemotes().catch(() => []);
+      if (!remotes.length) {
+        const ok = await vscode.window.showWarningMessage(
+          `My VS Code：${repo.binding.label} 还没有远程仓库，先添加远程？`,
+          '添加远程',
+        );
+        if (ok === '添加远程') {
+          void vscode.commands.executeCommand('myVscode.remotes', repo);
+        }
+        return;
+      }
+      let remote = remotes[0].name;
+      if (remotes.length > 1) {
+        const pick = await vscode.window.showQuickPick(
+          remotes.map((r) => ({ label: r.name, description: r.url })),
+          { placeHolder: `发布分支 ${repo.branch} 到哪个远程？` },
+        );
+        if (!pick) {
+          return;
+        }
+        remote = pick.label;
+      }
+      await repo.publishTo(remote).catch(errBox);
+    })();
   });
 }
 

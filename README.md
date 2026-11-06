@@ -34,6 +34,8 @@ E:\HOME\Code                     ← 工作区根（父仓/私有仓，交给内
 - 暂存 / 取消暂存 / 暂存全部 / 取消全部暂存；放弃更改（强确认，未跟踪文件会被删除）
 - 提交（输入框 Ctrl+Enter）、暂存全部并提交；提交失败（例如 pre-commit 钩子拦截）会弹窗显示完整原因
 - 切换分支（QuickPick）、推送 / 拉取；状态栏分支名显示领先/落后（`↑n ↓n`）
+- 发布分支：无上游时分支旁显示 $(cloud-upload)「发布」按钮，一键 `push -u` 建立跟踪（无远程会引导先添加）
+- 存储库视图每行的 `…` 更多菜单：切换分支 / 发布 / 推送 / 拉取 / 管理远程 / 暂存全部 / 提交全部 / 刷新
 - 管理远程：SCM 标题栏 $(cloud) 按钮或命令面板「My VS Code: 管理远程」，支持添加 / 修改 URL / 删除 / 复制 URL
 - 文件保存、窗口聚焦、文件监听（含外迁 git-dir 的 index/HEAD/refs）自动刷新
 
@@ -47,7 +49,7 @@ pre-commit 钩子仍在外迁 git-dir 的 `hooks/` 下生效 —— 钩子拦截
 | 项 | 默认 | 说明 |
 | --- | --- | --- |
 | `myVscode.autoDiscover` | `true` | 自动解析根目录 `*-gl.sh` 脚本生成绑定 |
-| `myVscode.bindings` | `[]` | 手动绑定 `[{ workTree, gitDir, label }]` |
+| `myVscode.bindings` | `[]` | 手动绑定 `[{ workTree, gitDir, label, force }]` |
 
 配置示例（`settings.json`）：
 
@@ -65,7 +67,8 @@ pre-commit 钩子仍在外迁 git-dir 的 `hooks/` 下生效 —— 钩子拦截
     },
     {
       "workTree": "D:/repo/demo", // 必填
-      "gitDir": "D:/repo/demo-git" // 必填；label 可省略，默认取工作树目录名
+      "gitDir": "D:/repo/demo-git", // 必填；label 可省略，默认取工作树目录名
+      "force": true // 可选：目录里有有效 .git 指针文件但内置 git 扫不到时，强制接管
     }
   ]
 }

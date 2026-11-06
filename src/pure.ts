@@ -51,6 +51,8 @@ export interface StatusEntry {
 
 export interface ParsedStatus {
   branch?: string;
+  /** 上游分支（如 origin/main），无 upstream 时为 undefined */
+  upstream?: string;
   ahead?: number;
   behind?: number;
   entries: StatusEntry[];
@@ -71,7 +73,11 @@ export function parseStatus(zText: string): ParsedStatus {
       out.ahead = ab[1] ? Number(ab[1]) : undefined;
       out.behind = ab[2] ? Number(ab[2]) : ab[3] ? Number(ab[3]) : undefined;
     }
-    let br = head.split('...')[0];
+    const [b0, up] = head.split('...');
+    if (up) {
+      out.upstream = up.split(' ')[0] || undefined;
+    }
+    let br = b0;
     const bi = br.indexOf(' [');
     if (bi >= 0) {
       br = br.slice(0, bi);

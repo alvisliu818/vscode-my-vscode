@@ -6,6 +6,8 @@ export interface Binding {
   workTree: string;
   gitDir: string;
   label: string;
+  /** 跳过自管检测强制接管（目录内有有效 .git 指针但内置 git 扫不到时用） */
+  force?: boolean;
 }
 
 const SCRIPT_RE = /^(?:[\w.-]+-)?gl\.sh$/;
@@ -33,11 +35,11 @@ export async function discoverBindings(): Promise<Binding[]> {
   };
 
   for (const raw of cfg.get<unknown[]>('bindings', [])) {
-    const b = raw as { workTree?: string; gitDir?: string; label?: string };
+    const b = raw as { workTree?: string; gitDir?: string; label?: string; force?: boolean };
     const wt = normalizePath(b.workTree);
     const gd = normalizePath(b.gitDir);
     if (wt && gd) {
-      add({ workTree: wt, gitDir: gd, label: b.label || basename(wt) });
+      add({ workTree: wt, gitDir: gd, label: b.label || basename(wt), force: b.force === true });
     }
   }
 

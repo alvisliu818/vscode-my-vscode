@@ -83,6 +83,7 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
   readonly indexGroup: vscode.SourceControlResourceGroup;
   readonly wtGroup: vscode.SourceControlResourceGroup;
   branch = '';
+  upstream = '';
   ahead = 0;
   behind = 0;
 
@@ -181,13 +182,14 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     const parsed = parseStatus(r.stdout);
     const groups = splitGroups(parsed.entries);
     this.branch = parsed.branch ?? 'HEAD';
+    this.upstream = parsed.upstream ?? '';
     this.ahead = parsed.ahead ?? 0;
     this.behind = parsed.behind ?? 0;
     this.indexGroup.resourceStates = groups.index.map((e) => this.toState(e, 'index'));
     this.wtGroup.resourceStates = [...groups.conflict, ...groups.worktree].map((e) => this.toState(e, 'worktree'));
     this.scm.count = this.indexGroup.resourceStates.length + this.wtGroup.resourceStates.length;
     const ab = (this.ahead ? ` ↑${this.ahead}` : '') + (this.behind ? ` ↓${this.behind}` : '');
-    this.scm.statusBarCommands = [
+    const cmds: vscode.Command[] = [
       {
         command: 'myVscode.checkout',
         title: `$(git-branch) ${this.branch}${ab}`,
@@ -195,6 +197,16 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
         arguments: [this],
       },
     ];
+    // 无上游时显示「发布分支」按钮（内置 git 同款行为）
+    if (!this.upstream) {
+      cmds.push({
+        command: 'myVscode.publish',
+        title: '$(cloud-upload)',
+        tooltip: `发布分支 ${this.branch} 到远程`,
+        arguments: [this],
+      });
+    }
+    this.scm.statusBarCommands = cmds;
     this.log.appendLine(
       `[${this.binding.label}] 刷新：暂存 ${groups.index.length}，工作树 ${groups.worktree.length}` +
         `${groups.conflict.length ? `，冲突 ${groups.conflict.length}` : ''}（${Date.now() - t0}ms）`,
@@ -409,6 +421,24 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       await this.run(['remote', 'set-url', name, url]);
       this.log.appendLine(`[${this.binding.label}] 远程 URL 已更新：${name} → ${url}`);
     });
+  }
+
+  /** 发布当前分支：git push -u <remote> <branch>，建立上游跟踪。 */
+  async publishTo(remote: string): Promise<void> {
+    const r = await git(this.binding.gitDir, ['push', '-u', remote, this.branch], this.binding.workTree, 120000);
+    if (r.code === 0) {
+      this.log.appendLine(`[${this.binding.label}] git push -u ${remote} ${this.branch}: OK`);
+      void vscode.window.showInformationMessage(
+        `My VS Code：${this.binding.label} 分支 ${this.branch} 已发布到 ${remote}。`,
+      );
+    } else {
+      this.log.appendLine(`[${this.binding.label}] git push 失败:\n${r.stderr.trim()}`);
+      void vscode.window.showErrorMessage(
+        `My VS Code：${this.binding.label} 发布失败\n${r.stderr.trim()}`,
+        { modal: true },
+      );
+    }
+    await this.refresh();
   }
 
   async sync(kind: 'push' | 'pull'): Promise<void> {
