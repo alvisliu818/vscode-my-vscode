@@ -48,6 +48,30 @@ pre-commit 钩子仍在外迁 git-dir 的 `hooks/` 下生效 —— 钩子拦截
 | `myVscode.autoDiscover` | `true` | 自动解析根目录 `*-gl.sh` 脚本生成绑定 |
 | `myVscode.bindings` | `[]` | 手动绑定 `[{ workTree, gitDir, label }]` |
 
+配置示例（`settings.json`）：
+
+```jsonc
+{
+  // 打开 E:\HOME\Code 作为工作区时，靠扫描 *-gl.sh 自动发现即可
+  "myVscode.autoDiscover": true,
+
+  // 手动绑定的补充写法：打开单个子项目文件夹、或脚本不在工作区根目录时使用
+  "myVscode.bindings": [
+    {
+      "workTree": "E:/HOME/Code/obsidian/obsidian-my-obsidian",
+      "gitDir": "E:/HOME/Code/obsidian-my-obsidian-git",
+      "label": "obsidian-my-obsidian"
+    },
+    {
+      "workTree": "D:/repo/demo", // 必填
+      "gitDir": "D:/repo/demo-git" // 必填；label 可省略，默认取工作树目录名
+    }
+  ]
+}
+```
+
+路径建议用正斜杠 `/`（反斜杠也可识别）；修改配置后无需重启，绑定会自动重建。
+
 ## 已知限制
 
 - 需要把 `E:\HOME\Code`（含 `*-gl.sh` 的目录）作为工作区打开，才能自动发现；
