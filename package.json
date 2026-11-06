@@ -1,8 +1,8 @@
 {
   "name": "my-vscode",
   "displayName": "My VS Code",
-  "description": "个人扩展合集：① Python 里输入 [[ 自动提示工作区文件路径补全（类 Obsidian wiki-link）；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.1.0",
+  "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
+  "version": "0.2.0",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
