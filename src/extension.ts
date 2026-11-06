@@ -3,6 +3,7 @@ import { discoverBindings, selfManaged, Binding } from './binding';
 import { BindingRepo, SCHEME, ShowProvider, openChanges, openFile } from './scm';
 import { StatusEntry } from './pure';
 import { registerPathCompletions } from './completion';
+import { GraphProvider, GraphCommit, openCommit as graphOpenCommit } from './graph';
 
 type RepoBag = { repo?: BindingRepo; entries: { entry: StatusEntry; group: string }[] };
 
@@ -18,7 +19,35 @@ export function activate(ctx: vscode.ExtensionContext): void {
     for (const r of repos.values()) {
       void r.refresh().catch((e) => log.appendLine(`刷新异常: ${String(e)}`));
     }
+    refreshGraphSoon();
   };
+
+  // —— 提交图表 ——
+  const graph = new GraphProvider(log);
+  ctx.subscriptions.push(graph);
+  ctx.subscriptions.push(vscode.window.createTreeView('myVscode.graphView', { treeDataProvider: graph }));
+
+  const followEditor = () => {
+    const ed = vscode.window.activeTextEditor;
+    if (!ed) {
+      return;
+    }
+    const p = ed.document.uri.fsPath.replace(/\\/g, '/').toLowerCase() + '/';
+    for (const r of repos.values()) {
+      if (p.startsWith(r.binding.workTree.replace(/\\/g, '/').toLowerCase() + '/')) {
+        graph.follow(r);
+        return;
+      }
+    }
+  };
+
+  let graphTimer: NodeJS.Timeout | undefined;
+  function refreshGraphSoon(): void {
+    if (graphTimer) {
+      clearTimeout(graphTimer);
+    }
+    graphTimer = setTimeout(() => graph.refresh(), 800);
+  }
 
   const reload = async () => {
     for (const r of repos.values()) {
@@ -45,6 +74,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
     log.appendLine(
       `[绑定] 共 ${active.length} 个分离仓库${bindings.length !== active.length ? `（另跳过 ${bindings.length - active.length} 个）` : ''}`,
     );
+    void vscode.commands.executeCommand('setContext', 'myVscode.hasRepos', active.length > 0);
+    if (!graph.current() || ![...repos.values()].includes(graph.current() as BindingRepo)) {
+      graph.follow([...repos.values()][0]);
+    }
     refreshAll();
   };
 
@@ -70,9 +103,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
         const wt = r.binding.workTree.toLowerCase();
         if (p.startsWith(wt + '/')) {
           void r.refresh();
+          refreshGraphSoon();
         }
       }
     }),
+    vscode.window.onDidChangeActiveTextEditor(() => followEditor()),
   );
 
   // —— 命令实参解析 ——
@@ -334,6 +369,34 @@ export function activate(ctx: vscode.ExtensionContext): void {
       }
       await repo.publishTo(remote).catch(errBox);
     })();
+  });
+
+  // —— 提交图表 ——
+
+  reg('myVscode.graphPickRepo', async () => {
+    const list = [...repos.values()];
+    if (!list.length) {
+      void vscode.window.showInformationMessage('My VS Code：当前没有可用的分离仓库绑定。');
+      return;
+    }
+    const pick = await vscode.window.showQuickPick(
+      list.map((x) => ({ label: x.binding.label, description: x.binding.workTree, repo: x })),
+      { placeHolder: '提交图表：选择仓库' },
+    );
+    if (pick) {
+      graph.follow(pick.repo);
+    }
+  });
+
+  reg('myVscode.graphRefresh', () => {
+    refreshAll();
+  });
+
+  reg('myVscode.openCommit', async (...args: unknown[]) => {
+    const [repo, c] = args as [BindingRepo | undefined, GraphCommit | undefined];
+    if (repo && c) {
+      await graphOpenCommit(repo, c).catch(errBox);
+    }
   });
 }
 
