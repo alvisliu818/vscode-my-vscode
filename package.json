@@ -2,7 +2,7 @@
   "name": "my-vscode",
   "displayName": "My VS Code",
   "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
@@ -179,12 +179,63 @@
       "workbench.view.scm": [
         {
           "id": "myVscode.graphView",
-          "name": "提交图表",
-          "when": "myVscode.hasRepos"
+          "name": "提交图表"
         }
       ]
     },
     "menus": {
+      "scm/repository": [
+        {
+          "command": "myVscode.checkout",
+          "group": "1_header@1",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.publish",
+          "group": "1_header@2",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.sync",
+          "group": "1_header@3",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.push",
+          "group": "1_header@4",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.pull",
+          "group": "1_header@5",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.commitAll",
+          "group": "2_main@1",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.stageAll",
+          "group": "2_main@2",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.unstageAll",
+          "group": "2_main@3",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.remotes",
+          "group": "2_main@4",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.refresh",
+          "group": "3_footer@1",
+          "when": "scmProvider == myVscode"
+        }
+      ],
       "commandPalette": [
         {
           "command": "myVscode.stage",
