@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { discoverBindings, selfManaged, Binding } from './binding';
 import { BindingRepo, SCHEME, ShowProvider, openChanges, openFile } from './scm';
 import { StatusEntry } from './pure';
+import { registerWikiPathCompletion } from './completion';
 
 type RepoBag = { repo?: BindingRepo; entries: { entry: StatusEntry; group: string }[] };
 
@@ -10,6 +11,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
   const repos = new Map<string, BindingRepo>();
 
   ctx.subscriptions.push(log);
+  registerWikiPathCompletion(ctx);
   ctx.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SCHEME, new ShowProvider()));
 
   const refreshAll = () => {

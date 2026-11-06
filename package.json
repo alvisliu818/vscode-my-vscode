@@ -1,7 +1,7 @@
 {
-  "name": "separated-git-scm",
-  "displayName": "Separated Git SCM",
-  "description": "把项目目录与 .git 外迁的分离 git 仓库绑定，在源代码管理面板直接查看/暂存/提交/推送，无需 .git 指针文件。",
+  "name": "my-vscode",
+  "displayName": "My VS Code",
+  "description": "个人扩展合集：① Python 里输入 [[ 自动提示工作区文件路径补全（类 Obsidian wiki-link）；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
   "version": "0.1.0",
   "publisher": "autoclaw-local",
   "license": "MIT",
