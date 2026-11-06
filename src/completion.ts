@@ -9,7 +9,7 @@ const EXCLUDE_GLOB = '**/{node_modules,.git,__pycache__,.venv,venv,dist,out,tmp,
 
 /**
  * Python 文件里输入 [[ 自动提示工作区文件路径，回车后插入 `路径]]`。
- * 类 Obsidian wiki-link 的补全体验。
+ * 类 Obsidian wiki-link 的补全体验。[[ 后跟 ./ 或 ../ 时按当前文件相对路径提示。
  */
 export class WikiPathCompletionProvider implements vscode.CompletionItemProvider {
   async provideCompletionItems(
@@ -25,6 +25,19 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
 
     const query = match[0].slice(2);
     const replaceRange = new vscode.Range(position.translate(0, -query.length), position);
+
+    // [[./ 、[[../ 模式：以当前文件目录为基准的相对路径补全
+    const relMatch = REL_PATH.exec(query);
+    if (relMatch) {
+      const [, dirPart] = relMatch;
+      let dir = path.dirname(document.uri.fsPath);
+      for (const seg of dirPart.split('/')) {
+        if (seg === '..') {
+          dir = path.dirname(dir);
+        }
+      }
+      return readDirItems(dir, dirPart, ']]', replaceRange, token);
+    }
 
     const files = await vscode.workspace.findFiles('**/*', EXCLUDE_GLOB, 2000, token);
     const roots = vscode.workspace.workspaceFolders ?? [];
@@ -53,6 +66,40 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
 /** 行尾形如 ./xxx 或 ../a/b/xxx 的相对路径（引号、空白、反斜杠视为路径结束） */
 const REL_PATH = /^(\.{1,2}\/(?:[^'"\\/\s]+\/)*)([^'"\\/\s]*)$/;
 
+/** 列出 dir 下的条目生成补全项；insertText = dirPart + 名称 + (目录加 /) + suffix */
+async function readDirItems(
+  dir: string,
+  dirPart: string,
+  suffix: string,
+  range: vscode.Range,
+  token: vscode.CancellationToken,
+): Promise<vscode.CompletionItem[]> {
+  let entries: [string, vscode.FileType][];
+  try {
+    entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dir));
+  } catch {
+    return [];
+  }
+  const items: vscode.CompletionItem[] = [];
+  for (const [name, type] of entries) {
+    if (token.isCancellationRequested) {
+      return items;
+    }
+    const isDir = type === vscode.FileType.Directory;
+    const item = new vscode.CompletionItem(
+      isDir ? name + '/' : name,
+      isDir ? vscode.CompletionItemKind.Folder : vscode.CompletionItemKind.File,
+    );
+    item.insertText = dirPart + name + (isDir ? '/' : '') + suffix;
+    item.range = range;
+    item.detail = dir;
+    // 目录排前面
+    item.sortText = (isDir ? '0' : '1') + name.toLowerCase();
+    items.push(item);
+  }
+  return items;
+}
+
 /** 以当前文件所在目录为基准解析 ./ 与 ../，提示相对路径下的文件和子目录 */
 export class RelativePathCompletionProvider implements vscode.CompletionItemProvider {
   async provideCompletionItems(
@@ -75,32 +122,7 @@ export class RelativePathCompletionProvider implements vscode.CompletionItemProv
         dir = path.dirname(dir);
       }
     }
-
-    let entries: [string, vscode.FileType][];
-    try {
-      entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(dir));
-    } catch {
-      return [];
-    }
-
-    const items: vscode.CompletionItem[] = [];
-    for (const [name, type] of entries) {
-      if (token.isCancellationRequested) {
-        return items;
-      }
-      const isDir = type === vscode.FileType.Directory;
-      const item = new vscode.CompletionItem(
-        isDir ? name + '/' : name,
-        isDir ? vscode.CompletionItemKind.Folder : vscode.CompletionItemKind.File,
-      );
-      item.insertText = dirPart + name + (isDir ? '/' : '');
-      item.range = replaceRange;
-      item.detail = dir;
-      // 目录排前面；插入以 / 结尾时自动再次弹出补全继续下钻
-      item.sortText = (isDir ? '0' : '1') + name.toLowerCase();
-      items.push(item);
-    }
-    return items;
+    return readDirItems(dir, dirPart, '', replaceRange, token);
   }
 }
 
