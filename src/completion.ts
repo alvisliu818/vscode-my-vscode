@@ -26,10 +26,9 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
     const query = match[0].slice(2);
     const replaceRange = new vscode.Range(position.translate(0, -query.length), position);
 
-    // [[./ 、[[../ 模式：以当前文件目录为基准的相对路径补全
-    const relMatch = REL_PATH.exec(query);
-    if (relMatch) {
-      const [, dirPart] = relMatch;
+    // [[./ 、[[../ 、[[. 、[[.. 模式：以当前文件目录为基准的相对路径补全
+    const dirPart = relDirPart(query);
+    if (dirPart !== undefined) {
       let dir = path.dirname(document.uri.fsPath);
       for (const seg of dirPart.split('/')) {
         if (seg === '..') {
@@ -66,7 +65,15 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
 /** 行尾形如 ./xxx 或 ../a/b/xxx 的相对路径（引号、空白、反斜杠视为路径结束） */
 const REL_PATH = /^(\.{1,2}\/(?:[^'"\\/\s]+\/)*)([^'"\\/\s]*)$/;
 
-/** 列出 dir 下的条目生成补全项；insertText = dirPart + 名称 + (目录加 /) + suffix */
+/** query 是否处于相对路径输入状态；返回目录前缀部分（'.' / '..' / './…/ '） */
+function relDirPart(q: string): string | undefined {
+  if (q === '.' || q === '..') {
+    return q;
+  }
+  return REL_PATH.exec(q)?.[1];
+}
+
+/** 列出 dir 下的条目生成补全项；insertText = 目录前缀 + 名称 + (目录加 /) + suffix */
 async function readDirItems(
   dir: string,
   dirPart: string,
@@ -80,6 +87,7 @@ async function readDirItems(
   } catch {
     return [];
   }
+  const prefix = dirPart.endsWith('/') ? dirPart : dirPart + '/';
   const items: vscode.CompletionItem[] = [];
   for (const [name, type] of entries) {
     if (token.isCancellationRequested) {
@@ -90,7 +98,7 @@ async function readDirItems(
       isDir ? name + '/' : name,
       isDir ? vscode.CompletionItemKind.Folder : vscode.CompletionItemKind.File,
     );
-    item.insertText = dirPart + name + (isDir ? '/' : '') + suffix;
+    item.insertText = prefix + name + (isDir ? '/' : '') + suffix;
     item.range = range;
     item.detail = dir;
     // 目录排前面
@@ -129,7 +137,7 @@ export class RelativePathCompletionProvider implements vscode.CompletionItemProv
 export function registerPathCompletions(ctx: vscode.ExtensionContext): void {
   const filter = { language: 'python', scheme: 'file' } as const;
   ctx.subscriptions.push(
-    vscode.languages.registerCompletionItemProvider(filter, new WikiPathCompletionProvider(), '[', '/', '\\'),
+    vscode.languages.registerCompletionItemProvider(filter, new WikiPathCompletionProvider(), '[', '.', '/', '\\'),
     vscode.languages.registerCompletionItemProvider(filter, new RelativePathCompletionProvider(), '.', '/'),
   );
 }
