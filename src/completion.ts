@@ -157,31 +157,54 @@ export function registerPathCompletions(ctx: vscode.ExtensionContext): void {
     vscode.languages.registerCompletionItemProvider(filter, new RelativePathCompletionProvider(), '.', '/'),
   );
 
-  // 光标移入 [[…]]（或 [[]]）内部时自动弹出补全，查询词取 [[ 到光标之间的字符
+  // 打字/移入 [[…]]（或 ./…）上下文时主动触发 suggest：
+  // 字符串/注释里 quickSuggestions 默认关闭、Esc 后不再自动弹出，都得自己补一刀
   let timer: NodeJS.Timeout | undefined;
+  const scheduleSuggest = (ms: number) => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      void vscode.commands.executeCommand('editor.action.triggerSuggest');
+    }, ms);
+  };
+
+  /** 光标是否处于补全上下文：[[ 未闭合，或行首 ./ 相对路径；且光标后无游离方括号 */
+  const shouldTrigger = (doc: vscode.TextDocument, pos: vscode.Position): boolean => {
+    if (doc.languageId !== 'python' || doc.uri.scheme !== 'file') {
+      return false;
+    }
+    const line = doc.lineAt(pos.line).text;
+    const before = line.slice(0, pos.character);
+    const after = line.slice(pos.character);
+    const inContext = WIKI_PREFIX.test(before) || REL_PATH.test(before);
+    return inContext && !/[[\]]/.test(after.replace(/\]\]\s*$/, ''));
+  };
+
   ctx.subscriptions.push(
+    // 光标移动（点击进入 [[]]、方向键）：延迟稍长，避免和触发字符打架
     vscode.window.onDidChangeTextEditorSelection((e) => {
-      const doc = e.textEditor.document;
-      if (doc.languageId !== 'python' || doc.uri.scheme !== 'file') {
-        return;
-      }
       if (e.selections.length !== 1 || !e.selections[0].isEmpty) {
         return;
       }
-      const pos = e.selections[0].active;
-      const line = doc.lineAt(pos.line).text;
-      const before = line.slice(0, pos.character);
-      const after = line.slice(pos.character);
-      // 光标前须有未闭合的 [[…；光标后不能出现其他方括号（允许一个收尾的 ]]）
-      if (!WIKI_PREFIX.test(before) || /[[\]]/.test(after.replace(/\]\]\s*$/, ''))) {
+      if (shouldTrigger(e.textEditor.document, e.selections[0].active)) {
+        scheduleSuggest(150);
+      }
+    }),
+    // 打字：只对短输入（触发符/普通按键）起作用，补全接受、粘贴、长替换不会误弹
+    vscode.workspace.onDidChangeTextDocument((e) => {
+      const ed = vscode.window.activeTextEditor;
+      if (!ed || ed.document !== e.document) {
         return;
       }
-      if (timer) {
-        clearTimeout(timer);
+      const ch = e.contentChanges[0];
+      if (!ch || ch.text.length > 2 || ch.rangeLength > 2) {
+        return;
       }
-      timer = setTimeout(() => {
-        void vscode.commands.executeCommand('editor.action.triggerSuggest');
-      }, 250);
+      const pos = new vscode.Position(ch.range.start.line, ch.range.start.character + ch.text.length);
+      if (shouldTrigger(e.document, pos)) {
+        scheduleSuggest(120);
+      }
     }),
     {
       dispose: () => {
