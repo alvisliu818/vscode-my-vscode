@@ -35,7 +35,7 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
           dir = path.dirname(dir);
         }
       }
-      return readDirItems(dir, dirPart, ']]', replaceRange, token);
+      return readDirItems(dir, dirPart, replaceRange, token);
     }
 
     const files = await vscode.workspace.findFiles('**/*', EXCLUDE_GLOB, 2000, token);
@@ -50,7 +50,7 @@ export class WikiPathCompletionProvider implements vscode.CompletionItemProvider
       const relPath = path.relative(root.uri.fsPath, file.fsPath).replace(/\\/g, '/');
       const item = new vscode.CompletionItem(relPath, vscode.CompletionItemKind.File);
       item.detail = file.fsPath;
-      item.insertText = relPath + ']]';
+      item.insertText = relPath;
       item.range = replaceRange;
       // 文件名命中查询的排前面
       if (query && path.basename(relPath).toLowerCase().includes(query.toLowerCase())) {
@@ -73,11 +73,10 @@ function relDirPart(q: string): string | undefined {
   return REL_PATH.exec(q)?.[1];
 }
 
-/** 列出 dir 下的条目生成补全项；insertText = 目录前缀 + 名称 + (目录加 /) + suffix */
+/** 列出 dir 下的条目生成补全项；insertText = 目录前缀 + 名称 + (目录加 /) */
 async function readDirItems(
   dir: string,
   dirPart: string,
-  suffix: string,
   range: vscode.Range,
   token: vscode.CancellationToken,
 ): Promise<vscode.CompletionItem[]> {
@@ -98,7 +97,7 @@ async function readDirItems(
       isDir ? name + '/' : name,
       isDir ? vscode.CompletionItemKind.Folder : vscode.CompletionItemKind.File,
     );
-    item.insertText = prefix + name + (isDir ? '/' : '') + suffix;
+    item.insertText = prefix + name + (isDir ? '/' : '');
     item.filterText = prefix + name + (isDir ? '/' : '');
     item.range = range;
     item.detail = dir;
@@ -131,7 +130,7 @@ export class RelativePathCompletionProvider implements vscode.CompletionItemProv
         dir = path.dirname(dir);
       }
     }
-    return readDirItems(dir, dirPart, '', replaceRange, token);
+    return readDirItems(dir, dirPart, replaceRange, token);
   }
 }
 
