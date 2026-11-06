@@ -200,6 +200,8 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     const code = group === 'index' ? e.x : e.x === '?' ? '?' : e.y;
     const deleted = code === 'D';
     const label = STATUS_LABEL[code] ?? code;
+    // 单击变更行打开差异（内置 git 同款行为）；删除的文件也走差异查看原内容
+    const command: vscode.Command = { command: 'myVscode.openChanges', title: '打开差异', arguments: [] };
     const state = tag<vscode.SourceControlResourceState>(
       {
         resourceUri: vscode.Uri.file(joinFs(this.binding.workTree, e.path)),
@@ -207,9 +209,11 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
           strikeThrough: deleted,
           tooltip: (e.origPath ? `重命名自 ${e.origPath} · ` : '') + label,
         },
+        command,
       },
       { _repo: this, _entry: e, _group: group },
     );
+    command.arguments?.push(this, state, group);
     return state;
   }
 
