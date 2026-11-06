@@ -99,6 +99,7 @@ async function readDirItems(
       isDir ? vscode.CompletionItemKind.Folder : vscode.CompletionItemKind.File,
     );
     item.insertText = prefix + name + (isDir ? '/' : '') + suffix;
+    item.filterText = prefix + name + (isDir ? '/' : '');
     item.range = range;
     item.detail = dir;
     // 目录排前面
