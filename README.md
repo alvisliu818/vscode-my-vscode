@@ -33,7 +33,8 @@ E:\HOME\Code                     ← 工作区根（父仓/私有仓，交给内
 - 打开差异（HEAD ↔ 暂存区 ↔ 工作树，重命名以原路径为基准）、打开文件、行内 Quick Diff
 - 暂存 / 取消暂存 / 暂存全部 / 取消全部暂存；放弃更改（强确认，未跟踪文件会被删除）
 - 提交（输入框 Ctrl+Enter）、暂存全部并提交；提交失败（例如 pre-commit 钩子拦截）会弹窗显示完整原因
-- 切换分支（QuickPick）、推送 / 拉取
+- 切换分支（QuickPick）、推送 / 拉取；状态栏分支名显示领先/落后（`↑n ↓n`）
+- 管理远程：SCM 标题栏 $(cloud) 按钮或命令面板「My VS Code: 管理远程」，支持添加 / 修改 URL / 删除 / 复制 URL
 - 文件保存、窗口聚焦、文件监听（含外迁 git-dir 的 index/HEAD/refs）自动刷新
 
 ## 与隐私防护的关系
@@ -76,4 +77,4 @@ pre-commit 钩子仍在外迁 git-dir 的 `hooks/` 下生效 —— 钩子拦截
 
 - 需要把 `E:\HOME\Code`（含 `*-gl.sh` 的目录）作为工作区打开，才能自动发现；
   打开单个子项目文件夹时请用 `myVscode.bindings` 手动配置。
-- 未实现：stash、rebase、远端管理、子模块操作。
+- 未实现：stash、rebase、子模块操作。

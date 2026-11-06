@@ -83,6 +83,8 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
   readonly indexGroup: vscode.SourceControlResourceGroup;
   readonly wtGroup: vscode.SourceControlResourceGroup;
   branch = '';
+  ahead = 0;
+  behind = 0;
 
   private disposed = false;
   private queue: Promise<unknown> = Promise.resolve();
@@ -179,13 +181,16 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
     const parsed = parseStatus(r.stdout);
     const groups = splitGroups(parsed.entries);
     this.branch = parsed.branch ?? 'HEAD';
+    this.ahead = parsed.ahead ?? 0;
+    this.behind = parsed.behind ?? 0;
     this.indexGroup.resourceStates = groups.index.map((e) => this.toState(e, 'index'));
     this.wtGroup.resourceStates = [...groups.conflict, ...groups.worktree].map((e) => this.toState(e, 'worktree'));
     this.scm.count = this.indexGroup.resourceStates.length + this.wtGroup.resourceStates.length;
+    const ab = (this.ahead ? ` ↑${this.ahead}` : '') + (this.behind ? ` ↓${this.behind}` : '');
     this.scm.statusBarCommands = [
       {
         command: 'myVscode.checkout',
-        title: `$(git-branch) ${this.branch}`,
+        title: `$(git-branch) ${this.branch}${ab}`,
         tooltip: `${this.binding.label} · ${this.binding.workTree}`,
         arguments: [this],
       },
@@ -368,6 +373,42 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       }
     }
     await this.refresh();
+  }
+
+  // —— 远程管理 ——
+
+  /** 远程列表（fetch URL），解析 `git remote -v`。 */
+  async listRemotes(): Promise<{ name: string; url: string }[]> {
+    const r = await git(this.binding.gitDir, ['remote', '-v'], this.binding.workTree);
+    const map = new Map<string, string>();
+    for (const line of r.stdout.split(/\r?\n/)) {
+      const m = line.match(/^(\S+)\t(\S+)\s+\(fetch\)$/);
+      if (m) {
+        map.set(m[1], m[2]);
+      }
+    }
+    return [...map].map(([name, url]) => ({ name, url }));
+  }
+
+  addRemote(name: string, url: string): Promise<void> {
+    return this.enqueue(async () => {
+      await this.run(['remote', 'add', name, url]);
+      this.log.appendLine(`[${this.binding.label}] 远程已添加：${name} → ${url}`);
+    });
+  }
+
+  removeRemote(name: string): Promise<void> {
+    return this.enqueue(async () => {
+      await this.run(['remote', 'remove', name]);
+      this.log.appendLine(`[${this.binding.label}] 远程已删除：${name}`);
+    });
+  }
+
+  setRemoteUrl(name: string, url: string): Promise<void> {
+    return this.enqueue(async () => {
+      await this.run(['remote', 'set-url', name, url]);
+      this.log.appendLine(`[${this.binding.label}] 远程 URL 已更新：${name} → ${url}`);
+    });
   }
 
   async sync(kind: 'push' | 'pull'): Promise<void> {

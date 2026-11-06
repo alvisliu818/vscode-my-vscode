@@ -238,6 +238,67 @@ export function activate(ctx: vscode.ExtensionContext): void {
       await openFile(bag.repo, bag.entries[0].entry).catch(errBox);
     }
   });
+
+  // —— 远程管理 ——
+
+  const manageRemotes = async (repo: BindingRepo): Promise<void> => {
+    for (;;) {
+      const remotes = await repo.listRemotes().catch(() => []);
+      const picks: (vscode.QuickPickItem & { remote?: { name: string; url: string } })[] = [
+        { label: '$(plus) 添加远程…' },
+        { kind: vscode.QuickPickItemKind.Separator, label: '' },
+        ...remotes.map((r) => ({ label: `$(cloud) ${r.name}`, description: r.url, remote: r })),
+      ];
+      const pick = await vscode.window.showQuickPick(picks, {
+        placeHolder: `${repo.binding.label}：管理远程（Esc 退出）`,
+      });
+      if (!pick) {
+        return;
+      }
+      if (!pick.remote) {
+        const name = (await vscode.window.showInputBox({ prompt: '远程名称（如 origin）' }))?.trim();
+        if (!name) {
+          continue;
+        }
+        const url = (await vscode.window.showInputBox({ prompt: `远程 URL（${name}）` }))?.trim();
+        if (!url) {
+          continue;
+        }
+        await repo.addRemote(name, url).catch(errBox);
+        continue;
+      }
+      const { name, url } = pick.remote;
+      const act = await vscode.window.showQuickPick(
+        [
+          { label: '$(copy) 复制 URL', detail: url },
+          { label: '$(pencil) 修改 URL…' },
+          { label: '$(trash) 删除远程…' },
+        ],
+        { placeHolder: `远程 ${name}` },
+      );
+      if (!act) {
+        continue;
+      }
+      if (act.label.startsWith('$(copy)')) {
+        await vscode.env.clipboard.writeText(url);
+        void vscode.window.showInformationMessage(`已复制：${url}`);
+      } else if (act.label.startsWith('$(pencil)')) {
+        const next = (await vscode.window.showInputBox({ prompt: `新的 URL（${name}）`, value: url }))?.trim();
+        if (next && next !== url) {
+          await repo.setRemoteUrl(name, next).catch(errBox);
+        }
+      } else {
+        const ok = await vscode.window.showWarningMessage(`删除远程 ${name}？（${url}）`, { modal: true }, '删除');
+        if (ok === '删除') {
+          await repo.removeRemote(name).catch(errBox);
+        }
+      }
+    }
+  };
+
+  reg('myVscode.remotes', (arg) => {
+    void resolveRepo(arg).then((r) => (r ? manageRemotes(r) : undefined));
+  });
 }
 
 export function deactivate(): void {

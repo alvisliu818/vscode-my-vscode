@@ -2,7 +2,7 @@
   "name": "my-vscode",
   "displayName": "My VS Code",
   "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
@@ -110,6 +110,11 @@
         "icon": "$(arrow-down)"
       },
       {
+        "command": "myVscode.remotes",
+        "title": "My VS Code: 管理远程",
+        "icon": "$(cloud)"
+      },
+      {
         "command": "myVscode.stage",
         "title": "暂存"
       },
@@ -205,6 +210,11 @@
         {
           "command": "myVscode.pull",
           "group": "3_sync@2",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.remotes",
+          "group": "3_sync@3",
           "when": "scmProvider == myVscode"
         }
       ],
