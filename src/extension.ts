@@ -398,6 +398,38 @@ export function activate(ctx: vscode.ExtensionContext): void {
       await graphOpenCommit(repo, c).catch(errBox);
     }
   });
+
+  // —— 右键：新建同名 MD 文件 ——
+
+  reg('myVscode.newSameNameMd', async (...args: unknown[]) => {
+    const src = (args[0] as vscode.Uri | undefined) ?? vscode.window.activeTextEditor?.document.uri;
+    if (!src || src.scheme !== 'file') {
+      void vscode.window.showInformationMessage('My VS Code：请在资源管理器中选择一个文件。');
+      return;
+    }
+    const p = src.fsPath.replace(/\\/g, '/');
+    const slash = p.lastIndexOf('/');
+    const dir = slash >= 0 ? p.slice(0, slash + 1) : '';
+    const name = p.slice(slash + 1);
+    if (/\.md$/i.test(name)) {
+      void vscode.window.showInformationMessage(`My VS Code：${name} 本身就是 MD 文件。`);
+      return;
+    }
+    const dot = name.lastIndexOf('.');
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    if (!base) {
+      void vscode.window.showInformationMessage(`My VS Code：无法从文件名 ${name} 生成 MD 文件名。`);
+      return;
+    }
+    const target = vscode.Uri.file(`${dir}${base}.md`);
+    try {
+      await vscode.workspace.fs.stat(target);
+    } catch {
+      await vscode.workspace.fs.writeFile(target, new Uint8Array(0));
+    }
+    await vscode.commands.executeCommand('vscode.open', target);
+    log.appendLine(`[MD] ${target.fsPath}`);
+  });
 }
 
 export function deactivate(): void {
