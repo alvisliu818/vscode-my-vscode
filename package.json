@@ -2,7 +2,7 @@
   "name": "my-vscode",
   "displayName": "My VS Code",
   "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
@@ -175,8 +175,17 @@
         "title": "查看提交文件差异"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "my-vscode-panel",
+          "title": "My VS Code",
+          "icon": "assets/activity-icon.svg"
+        }
+      ]
+    },
     "views": {
-      "workbench.view.scm": [
+      "my-vscode-panel": [
         {
           "id": "myVscode.graphView",
           "name": "提交图表"
