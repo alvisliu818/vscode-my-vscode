@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { parseWrapperScript, parseStatus, splitGroups } from '../tmp/pure.cjs';
+import { parseWrapperScript, parseStatus, splitGroups } from '../tmp/my-vscode-pure.cjs';
 
 const CODE = 'E:/HOME/Code';
 
