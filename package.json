@@ -2,7 +2,7 @@
   "name": "my-vscode",
   "displayName": "My VS Code",
   "description": "个人扩展合集：① Python 里输入 [[ 或 ./ 自动提示文件路径补全；② 把 .git 外迁的分离 git 仓库绑定到源代码管理面板，直接查看/暂存/提交/推送。",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "autoclaw-local",
   "license": "MIT",
   "icon": "icon.png",
@@ -112,6 +112,11 @@
         "command": "myVscode.pull",
         "title": "My VS Code: 拉取",
         "icon": "$(arrow-down)"
+      },
+      {
+        "command": "myVscode.sync",
+        "title": "My VS Code: 同步更改（拉取+推送）",
+        "icon": "$(sync)"
       },
       {
         "command": "myVscode.remotes",
@@ -225,43 +230,62 @@
           "command": "myVscode.remotes",
           "group": "3_sync@3",
           "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.sync",
+          "group": "3_sync@4",
+          "when": "scmProvider == myVscode"
         }
       ],
       "scm/sourceControl": [
         {
           "command": "myVscode.checkout",
+          "group": "1_branch@1",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.publish",
+          "group": "2_sync@1",
+          "when": "scmProvider == myVscode"
+        },
+        {
+          "command": "myVscode.sync",
+          "group": "2_sync@2",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.push",
+          "group": "2_sync@3",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.pull",
+          "group": "2_sync@4",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.remotes",
+          "group": "3_remote@1",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.commitAll",
+          "group": "4_changes@1",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.stageAll",
+          "group": "4_changes@2",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.unstageAll",
+          "group": "4_changes@3",
           "when": "scmProvider == myVscode"
         },
         {
           "command": "myVscode.refresh",
+          "group": "9_footer@1",
           "when": "scmProvider == myVscode"
         }
       ],

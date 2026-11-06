@@ -300,6 +300,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
     void resolveRepo(arg).then((r) => (r ? manageRemotes(r) : undefined));
   });
 
+  reg('myVscode.sync', (arg) => {
+    void resolveRepo(arg).then((r) => r?.syncBoth().catch(errBox));
+  });
+
   reg('myVscode.publish', (arg) => {
     void (async () => {
       const repo = await resolveRepo(arg);

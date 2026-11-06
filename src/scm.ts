@@ -197,8 +197,16 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
         arguments: [this],
       },
     ];
-    // 无上游时显示「发布分支」按钮（内置 git 同款行为）
-    if (!this.upstream) {
+    // 有上游：同步更改按钮（内置 git 同款，↑↓ 计数）；无上游：发布分支按钮
+    if (this.upstream) {
+      const cnt = this.ahead + this.behind;
+      cmds.push({
+        command: 'myVscode.sync',
+        title: cnt ? `$(sync) ↑${this.ahead} ↓${this.behind}` : '$(sync)',
+        tooltip: '同步更改（拉取并推送）',
+        arguments: [this],
+      });
+    } else {
       cmds.push({
         command: 'myVscode.publish',
         title: '$(cloud-upload)',
@@ -439,6 +447,12 @@ export class BindingRepo implements vscode.QuickDiffProvider, vscode.Disposable 
       );
     }
     await this.refresh();
+  }
+
+  /** 同步更改：先拉取再推送（内置 git sync 同款）。 */
+  async syncBoth(): Promise<void> {
+    await this.sync('pull');
+    await this.sync('push');
   }
 
   async sync(kind: 'push' | 'pull'): Promise<void> {
